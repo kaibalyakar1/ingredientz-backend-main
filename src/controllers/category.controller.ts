@@ -41,24 +41,21 @@ export const createCategory = async (req: Request, res: Response) => {
 
     return res.status(201).json({
       success: true,
-      message: "Category created successfully",
       data: category,
     });
-  } catch (error: any) {
-    logger.error(`Error creating category: ${error.message}`);
-
-    // Handle validation errors
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
+  } catch (err: any) {
+    if (err.code === 11000 && err.keyPattern?.slug) {
+      return res.status(409).json({
         success: false,
-        message: "Validation error",
-        errors: Object.values(error.errors).map((e: any) => e.message),
+        message:
+          "Category slug must be unique. Please choose a different name.",
       });
     }
 
+    logger.error("Error creating category", err);
     return res.status(500).json({
       success: false,
-      message: "Failed to create category",
+      message: "An error occurred while creating the category",
     });
   }
 };
